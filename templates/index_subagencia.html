@@ -68,11 +68,11 @@
             const quinielaFinal = quiniela * 0.85;
 
             // Calcular el total
-            const totalIngresos = telekinoFinal + quini6Final + lotoFinal + brincoFinal + lotimaxFinal + quinielaFinal;
+            const totalIngresos = telekinoFinal + quini6Final + lotoFinal + brincoFinal + lotimaxFinal + quinielaFinal + 5;
             const totalFinal = totalIngresos - premios;
 
             // Calcular el monto acumulado para la subagencia
-            const montoSubagencia = telekino + quini6 + loto + brinco + lotimax + quiniela - totalIngresos;
+            const montoSubagencia = telekino + quini6 + loto + brinco + lotimax + quiniela - totalIngresos - 5;
 
             // Mostrar los resultados
             document.getElementById('totalIngresos').textContent = totalIngresos.toFixed(2);
