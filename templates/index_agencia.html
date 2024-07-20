@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Resultados Quiniela</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Central de Resultados Quiniela</h1>
+
+    <input type="date" id="dateFilter" placeholder="Filtrar por fecha">
+    <button onclick="filterByDate()">Filtrar</button>
+
+    <div id="earningsTable">
+        <h2>Ganancias Recibidas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Ganancias</th>
+                    <th>Subagencia</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Las filas se llenarán dinámicamente con JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchEarnings();
+        });
+
+        function fetchEarnings(dateFilter = '') {
+            fetch(`/api/earnings?date=${dateFilter}`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                data.forEach(earning => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(earning.date).toLocaleDateString()}</td>
+                        <td>$${earning.earnings.toFixed(2)}</td>
+                        <td>${earning.agency}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                document.getElementById('earningsTable').style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function filterByDate() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            fetchEarnings(dateFilter);
+        }
+    </script>
+</body>
+</html>

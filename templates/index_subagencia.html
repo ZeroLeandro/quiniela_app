@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subagencia - Reporte Diario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Subagencia - Reporte Diario</h1>
+        <form id="earningsForm">
+            <label for="subagency">Número de Subagencia:</label>
+            <input type="text" id="subagency" name="subagency" required>
+
+            <label for="telekino">Generado Telekino:</label>
+            <input type="number" id="telekino" name="telekino" step="0.01" required>
+
+            <label for="quini6">Generado Quini 6:</label>
+            <input type="number" id="quini6" name="quini6" step="0.01" required>
+
+            <label for="loto">Generado Loto:</label>
+            <input type="number" id="loto" name="loto" step="0.01" required>
+
+            <label for="brinco">Generado Brinco:</label>
+            <input type="number" id="brinco" name="brinco" step="0.01" required>
+
+            <label for="lotimax">Generado Lotimax:</label>
+            <input type="number" id="lotimax" name="lotimax" step="0.01" required>
+
+            <label for="quiniela">Generado Quiniela:</label>
+            <input type="number" id="quiniela" name="quiniela" step="0.01" required>
+
+            <label for="premios">Pagado en Premios:</label>
+            <input type="number" id="premios" name="premios" step="0.01" required>
+
+            <button type="button" onclick="calculateEarnings()">Calcular</button>
+            <button type="button" onclick="submitEarnings()">Enviar</button>
+        </form>
+
+        <div class="result" id="result">
+            <h2>Resultados</h2>
+            <div id="calculatedResults">
+                <p>Total Generado (después de descuentos): $<span id="totalIngresos"></span></p>
+                <p>Total Final (después de restar premios): $<span id="totalFinal"></span></p>
+                <p>Monto acumulado en la subagencia: $<span id="montoSubagencia"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateEarnings() {
+            // Obtener valores del formulario
+            const telekino = parseFloat(document.getElementById('telekino').value);
+            const quini6 = parseFloat(document.getElementById('quini6').value);
+            const loto = parseFloat(document.getElementById('loto').value);
+            const brinco = parseFloat(document.getElementById('brinco').value);
+            const lotimax = parseFloat(document.getElementById('lotimax').value);
+            const quiniela = parseFloat(document.getElementById('quiniela').value);
+            const premios = parseFloat(document.getElementById('premios').value);
+
+            // Calcular los montos después de restar los porcentajes correspondientes
+            const telekinoFinal = telekino * 0.90;
+            const quini6Final = quini6 * 0.87;
+            const lotoFinal = loto * 0.90;
+            const brincoFinal = brinco * 0.90;
+            const lotimaxFinal = lotimax * 0.83;
+            const quinielaFinal = quiniela * 0.85;
+
+            // Calcular el total
+            const totalIngresos = telekinoFinal + quini6Final + lotoFinal + brincoFinal + lotimaxFinal + quinielaFinal;
+            const totalFinal = totalIngresos - premios;
+
+            // Calcular el monto acumulado para la subagencia
+            const montoSubagencia = telekino + quini6 + loto + brinco + lotimax + quiniela - totalIngresos;
+
+            // Mostrar los resultados
+            document.getElementById('totalIngresos').textContent = totalIngresos.toFixed(2);
+            document.getElementById('totalFinal').textContent = totalFinal.toFixed(2);
+            document.getElementById('montoSubagencia').textContent = montoSubagencia.toFixed(2);
+
+            return totalFinal; // Devolver el total final para usar en la función de envío
+        }
+
+        function submitEarnings() {
+            const totalFinal = calculateEarnings();
+
+            // Obtener los resultados calculados
+            const subagency = document.getElementById('subagency').value;
+
+            // Enviar los resultados a la API central
+            const today = new Date().toISOString().split('T')[0];
+            const earningsData = {
+                date: today,
+                earnings: totalFinal,  // Asegúrate de que este valor es un número
+                agency: subagency
+            };
+
+            fetch('/api/earnings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(earningsData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Earnings report sent successfully:', data);
+                // Mostrar mensaje de éxito
+                document.getElementById('result').innerHTML = `<p>Resultado enviado exitosamente a la central.</p>`;
+                // Actualizar tabla en la central de resultados (opcional)
+                fetchAndDisplayCentralResults();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function fetchAndDisplayCentralResults() {
+            fetch('/api/earnings')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                data.forEach(earning => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(earning.date).toLocaleDateString()}</td>
+                        <td>$${earning.earnings.toFixed(2)}</td>
+                        <td>${earning.agency}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                document.getElementById('earningsTable').style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
