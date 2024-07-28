@@ -1,14 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 # Obtener la zona horaria
 tz = pytz.timezone('America/Argentina/Buenos_Aires')
-
-# Crear una fecha con la zona horaria
-now = datetime.now(tz)
-print(now)
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///earnings.db'
@@ -26,8 +22,7 @@ with app.app_context():
 
 @app.route('/central')
 def central():
-    earnings = Earning.query.all()
-    return render_template('index_agencia.html', earnings=earnings)
+    return render_template('index_agencia.html')
 
 @app.route('/subagency')
 def subagency():
@@ -36,10 +31,10 @@ def subagency():
 @app.route('/api/earnings', methods=['POST'])
 def submit_earnings():
     data = request.json
-    print(data)  # Añadir esta línea para depurar la entrada
+    print(data)
     try:
         date_str = data['date']
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()  # Convertir a objeto de fecha
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
         earnings_value = data['earnings']
         if isinstance(earnings_value, dict):
             return jsonify({'error': 'Earnings should be a number, not a dictionary'}), 400
@@ -64,7 +59,7 @@ def get_earnings():
     
     results = [
         {
-            'date': earning.date.isoformat(),
+            'date': (earning.date + timedelta(days=1)).isoformat(),  # Sumar un día a la fecha
             'earnings': earning.earnings,
             'agency': earning.agency
         } for earning in earnings
