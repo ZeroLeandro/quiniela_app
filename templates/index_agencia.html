@@ -31,6 +31,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             fetchEarnings();
+            setInterval(fetchEarnings, 60000);  // Actualizar cada 60 segundos
         });
 
         function fetchEarnings(dateFilter = '') {
@@ -42,7 +43,7 @@
                 data.forEach(earning => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${new Date(earning.date).toLocaleDateString('es-AR')}</td>
+                        <td>${new Date(earning.date).toLocaleDateString()}</td>
                         <td>$${earning.earnings.toFixed(2)}</td>
                         <td>${earning.agency}</td>
                     `;
