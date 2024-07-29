@@ -50,6 +50,7 @@
 
     <script>
         function calculateEarnings() {
+            // Obtener valores del formulario
             const telekino = parseFloat(document.getElementById('telekino').value);
             const quini6 = parseFloat(document.getElementById('quini6').value);
             const loto = parseFloat(document.getElementById('loto').value);
@@ -58,6 +59,7 @@
             const quiniela = parseFloat(document.getElementById('quiniela').value);
             const premios = parseFloat(document.getElementById('premios').value);
 
+            // Calcular los montos después de restar los porcentajes correspondientes
             const telekinoFinal = telekino * 0.90;
             const quini6Final = quini6 * 0.87;
             const lotoFinal = loto * 0.90;
@@ -65,24 +67,30 @@
             const lotimaxFinal = lotimax * 0.83;
             const quinielaFinal = quiniela * 0.85;
 
-            const totalIngresos = telekinoFinal + quini6Final + lotoFinal + brincoFinal + lotimaxFinal + quinielaFinal + 5;
-            const totalFinal = totalIngresos - premios;
+            // Calcular el total
+            const totalIngresos= telekinoFinal + quini6Final + lotoFinal + brincoFinal + lotimaxFinal + quinielaFinal;
+            const totalIngresosFinal= totalIngresos +5;
+            const totalFinal = totalIngresos - premios + 5;
 
-            const montoSubagencia = telekino + quini6 + loto + brinco + lotimax + quiniela - totalIngresos ;
+            // Calcular el monto acumulado para la subagencia
+            const montoSubagencia = telekino + quini6 + loto + brinco + lotimax + quiniela - totalIngresos -5;
 
-            document.getElementById('totalIngresos').textContent = totalIngresos.toFixed(2);
+            // Mostrar los resultados
+            document.getElementById('totalIngresos').textContent = totalIngresosFinal.toFixed(2);
             document.getElementById('totalFinal').textContent = totalFinal.toFixed(2);
             document.getElementById('montoSubagencia').textContent = montoSubagencia.toFixed(2);
 
-            return totalFinal;
+            return totalFinal; // Devolver el total final para usar en la función de envío
         }
 
         function submitEarnings() {
             const totalFinal = calculateEarnings();
 
+            // Obtener los resultados calculados
             const subagency = document.getElementById('subagency').value;
-            const today = new Date().toISOString().split('T')[0];
 
+            // Enviar los resultados a la API central
+            const today = new Date().toISOString().split('T')[0];
             const earningsData = {
                 date: today,
                 earnings: totalFinal,
@@ -99,7 +107,32 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Earnings report sent successfully:', data);
+                // Mostrar mensaje de éxito
                 document.getElementById('result').innerHTML = `<p>Resultado enviado exitosamente a la central.</p>`;
+                // Limpiar los campos del formulario
+                document.getElementById('earningsForm').reset();
+                // Actualizar tabla en la central de resultados (opcional)
+                fetchAndDisplayCentralResults();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function fetchAndDisplayCentralResults() {
+            fetch('/api/earnings')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                data.forEach(earning => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(earning.date).toLocaleDateString()}</td>
+                        <td>$${earning.earnings.toFixed(2)}</td>
+                        <td>${earning.agency}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                document.getElementById('earningsTable').style.display = 'block';
             })
             .catch(error => console.error('Error:', error));
         }
