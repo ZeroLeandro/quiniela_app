@@ -55,7 +55,9 @@ def get_earnings():
         except ValueError:
             return jsonify({'error': 'Invalid date format'}), 400
     else:
-        earnings = Earning.query.all()
+        # Filtrar para obtener solo los registros del día actual
+        today = datetime.now(tz).date()
+        earnings = Earning.query.filter_by(date=today).all()
     
     results = [
         {
