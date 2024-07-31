@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 import pytz
@@ -19,6 +19,25 @@ class Earning(db.Model):
 # Crear las tablas en la base de datos
 with app.app_context():
     db.create_all()
+
+
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == 'admin' and password == 'admin':
+            return redirect(url_for('central'))
+        elif username == 'subagencia' and password == 'password':
+            return redirect(url_for('subagency'))
+        else:
+            error = 'Invalid credentials. Please try again.'
+    return render_template('login.html', error=error)
 
 @app.route('/central')
 def central():
@@ -69,5 +88,4 @@ def get_earnings():
     return jsonify(results)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
-
+    app.run(debug=True)
